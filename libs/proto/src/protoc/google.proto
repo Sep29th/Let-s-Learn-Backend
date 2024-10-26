@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package google;
+
+service GoogleService {
+  rpc LoginWithGoogle (IGoogleClientRequest) returns (IGoogleUserResourceInfo) {}
+}
+
+message IGoogleClientRequest {
+  string code = 1;
+  string scope = 2;
+  string authuser = 3;
+  string prompt = 4;
+}
+
+message IGoogleUserResourceInfo {
+  string id = 1;
+  string email = 2;
+  bool verified_email = 3;
+  string name = 4;
+  string given_name = 5;
+  string family_name = 6;
+  string picture = 7;
+}
