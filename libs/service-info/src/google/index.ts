@@ -21,6 +21,7 @@ export default {
       client: {
         brokers: [`${process.env.KAFKA1_HOST}:${process.env.KAFKA1_PORT}`, `${process.env.KAFKA2_HOST}:${process.env.KAFKA2_PORT}`, `${process.env.KAFKA3_HOST}:${process.env.KAFKA3_PORT}`],
         clientId: 'google',
+        retry: { retries: 3, initialRetryTime: 300, factor: 2 },
       },
       consumer: {
         groupId: 'google-consumer',

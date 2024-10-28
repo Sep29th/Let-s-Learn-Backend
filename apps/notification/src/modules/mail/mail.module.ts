@@ -14,14 +14,16 @@ import { MailConsumer } from './processors/mail.processor';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
-          host: '127.0.0.1',
-          port: 1025,
+          host: configService.get<string>('MAIL_SMTP_HOST'),
+          port: configService.get<number>('MAIL_SMTP_PORT'),
           secure: false,
-          auth: null,
+          auth: configService.get<string>('MAIL_SMTP_AUTH_USERNAME')
+            ? { username: configService.get<string>('MAIL_SMTP_AUTH_USERNAME'), password: configService.get<string>('MAIL_SMTP_AUTH_PASSWORD') }
+            : null,
           pool: true,
-          maxConnections: 5,
-          maxMessages: 100,
-          rateLimit: 10,
+          maxConnections: configService.get<number>('MAIL_SMTP_MAX_CONNECTION'),
+          maxMessages: configService.get<number>('MAIL_SMTP_MAX_MESSAGE'),
+          rateLimit: configService.get<number>('MAIL_SMTP_RATE_LIMIT'),
         },
         defaults: {
           from: `"Let's Learn" <ro-reply@letlearn.sep29th.online>`,
@@ -33,14 +35,17 @@ import { MailConsumer } from './processors/mail.processor';
         },
       }),
     }),
-    BullModule.registerQueue({
+    BullModule.registerQueueAsync({
       name: 'MAIL',
-      defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: 50,
-        attempts: 3,
-        backoff: { type: 'fixed', delay: 1000 },
-      },
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: 50,
+          attempts: configService.get<number>('MAIL_QUEUE_ATTEMPTS'),
+          backoff: { type: 'fixed', delay: configService.get<number>('MAIL_QUEUE_BACKOFF_DELAY') },
+        },
+      }),
     }),
   ],
   controllers: [TestController],

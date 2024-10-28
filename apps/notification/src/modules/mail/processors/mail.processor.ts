@@ -11,8 +11,12 @@ export class MailConsumer extends WorkerHost {
   async process(job: Job): Promise<any> {
     switch (job.name) {
       case 'send-one': {
-        await this.mailerService.sendMail({ to: job.data.email, subject: 'Verify Code', text: 'This is text', template: 'verify', context: job.data });
+        await this.sendOne(job);
       }
     }
+  }
+
+  async sendOne(job: Job) {
+    await this.mailerService.sendMail({ to: job.data.email, subject: 'Verify Code', text: 'This is text', template: 'verify', context: job.data });
   }
 }

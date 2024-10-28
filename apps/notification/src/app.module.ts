@@ -9,7 +9,7 @@ import { BullModule } from '@nestjs/bullmq';
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        connection: { host: '127.0.0.1', port: 6379 },
+        connection: { host: configService.get<string>('REDIS_HOST'), port: configService.get<number>('REDIS_PORT') },
       }),
     }),
     MailModule,
