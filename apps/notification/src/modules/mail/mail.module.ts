@@ -4,9 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bullmq';
-import { TestController } from './controllers/test.controller';
 import { MailService } from './services/mail.service';
-import { MailConsumer } from './processors/mail.processor';
+import { MailProcessor } from './processors/mail.processor';
+import { QueueName } from './interfaces/mail-queue';
+import { MailQueueEventListener } from './events/mail-queue.event';
+import { MailController } from './controllers/mail.controller';
 
 @Module({
   imports: [
@@ -36,19 +38,19 @@ import { MailConsumer } from './processors/mail.processor';
       }),
     }),
     BullModule.registerQueueAsync({
-      name: 'MAIL',
+      name: QueueName,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         defaultJobOptions: {
           removeOnComplete: true,
           removeOnFail: 50,
           attempts: configService.get<number>('MAIL_QUEUE_ATTEMPTS'),
-          backoff: { type: 'fixed', delay: configService.get<number>('MAIL_QUEUE_BACKOFF_DELAY') },
+          backoff: { type: 'exponential', delay: configService.get<number>('MAIL_QUEUE_BACKOFF_DELAY') },
         },
       }),
     }),
   ],
-  controllers: [TestController],
-  providers: [MailService, MailConsumer],
+  controllers: [MailController],
+  providers: [MailService, MailProcessor, MailQueueEventListener],
 })
 export class MailModule {}

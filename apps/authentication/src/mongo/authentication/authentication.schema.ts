@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Exclude } from 'class-transformer';
 import * as mongoose from 'mongoose';
 
 export type AuthenticationDocument = mongoose.HydratedDocument<Authentication>;
@@ -20,19 +21,20 @@ export enum Status {
 
 @Schema({ timestamps: true })
 export class Authentication {
-  @Prop({ _id: true })
-  _id: string;
-
   @Prop({ type: mongoose.Schema.Types.String, required: true })
   name: string;
 
-  @Prop({ type: mongoose.Schema.Types.String, unique: true })
+  @Prop({ type: mongoose.Schema.Types.String })
   nickname: string;
 
   @Prop({ type: mongoose.Schema.Types.String })
   avatar: string;
 
-  @Prop({ type: mongoose.Schema.Types.String, unique: true })
+  @Exclude()
+  @Prop({ type: mongoose.Schema.Types.String })
+  password: string;
+
+  @Prop({ type: mongoose.Schema.Types.String })
   phone_number: string;
 
   @Prop({ type: mongoose.Schema.Types.Boolean, default: false })
@@ -44,9 +46,11 @@ export class Authentication {
   @Prop({ type: mongoose.Schema.Types.Boolean, default: false })
   email_verified: boolean;
 
+  @Exclude()
   @Prop({ type: mongoose.Schema.Types.String, enum: Object.values(Status), default: Status.UNACTIVE })
   status: Status;
 
+  @Exclude()
   @Prop({ type: mongoose.Schema.Types.String, enum: Object.values(AccountType), required: true })
   account_type: AccountType;
 

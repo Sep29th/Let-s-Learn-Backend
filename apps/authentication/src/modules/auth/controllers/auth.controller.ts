@@ -2,8 +2,9 @@ import { Body, Controller, Inject, Post, Req, UseGuards } from '@nestjs/common';
 import { Auth } from '../classes/auth.class';
 import { RefreshTokenGuard } from '../guards/refresh-token.guard';
 import { Request } from 'express';
-import { IRefreshTokenValidatedPayload } from '../interfaces/refresh-token-validated-payload';
+import { IRefreshTokenValidatedPayload } from '../types/refresh-token-validated-payload.type';
 import { AccessTokenGuard } from '@app/module/authentication/guards/access-token.guard';
+import { IAccessTokenValidatedPayload } from '../types/access-token-validated-payload.type';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -31,5 +32,11 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   async refreshToken(@Req() request: Request & IRefreshTokenValidatedPayload) {
     return await this.authService.refreshToken(request.user.token, request.user.payload);
+  }
+
+  @Post('verify-phonenumber')
+  @UseGuards(AccessTokenGuard)
+  async verifyPhonenumber(@Req() request: Request & IAccessTokenValidatedPayload) {
+    return await this.authService.verifyPhonenumber(request.user.payload.authenticationId);
   }
 }

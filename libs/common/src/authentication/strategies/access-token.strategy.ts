@@ -9,12 +9,12 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'ACCESS_TOKE
   constructor(protected configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('JWT_ACCESS_PRIVATE_KEY'),
+      secretOrKey: configService.get<string>('JWT_ACCESS_PUBLIC_KEY'),
       algorithms: ['RS256'],
     } as StrategyOptions);
   }
 
   async validate(payload: IAccessTokenPayload) {
-    return payload;
+    return { payload: payload };
   }
 }

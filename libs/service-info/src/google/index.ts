@@ -25,6 +25,8 @@ export default {
       },
       consumer: {
         groupId: 'google-consumer',
+        retry: { retries: 3, initialRetryTime: 5000, maxRetryTime: 60000, multiplier: 2 },
+        allowAutoTopicCreation: true,
       },
     },
   },

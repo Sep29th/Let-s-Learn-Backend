@@ -1,14 +1,14 @@
 import { Controller } from '@nestjs/common';
 import { FirebaseCloudMessagingService } from '../services/firebase-cloud-messaging.service';
 import { Ctx, EventPattern, KafkaContext, KafkaRetriableException, Payload } from '@nestjs/microservices';
-import { GoogleEventMessage } from 'kafka/event-message/google';
+import { Topic, IPatternSendPayload, IPatternSendEachPayload, IPatternSendEachForMulticastPayload } from 'kafka/event-message/google';
 
 @Controller('fcm')
 export class FirebaseCloudMessagingController {
   constructor(private readonly firebaseCloudMessagingService: FirebaseCloudMessagingService) {}
 
-  @EventPattern(GoogleEventMessage.Pattern.Send)
-  async send(@Payload() payload: GoogleEventMessage.IPatternSendPayload, @Ctx() ctx: KafkaContext) {
+  @EventPattern(Topic.Send)
+  async send(@Payload() payload: IPatternSendPayload, @Ctx() ctx: KafkaContext) {
     try {
       await this.firebaseCloudMessagingService.sendNotification(payload.data);
     } catch (error) {
@@ -16,8 +16,8 @@ export class FirebaseCloudMessagingController {
     }
   }
 
-  @EventPattern(GoogleEventMessage.Pattern.SendEach)
-  async sendEach(@Payload() payload: GoogleEventMessage.IPatternSendEachPayload, @Ctx() ctx: KafkaContext) {
+  @EventPattern(Topic.SendEach)
+  async sendEach(@Payload() payload: IPatternSendEachPayload, @Ctx() ctx: KafkaContext) {
     try {
       await this.firebaseCloudMessagingService.sendEachNotification(payload.data);
     } catch (error) {
@@ -25,8 +25,8 @@ export class FirebaseCloudMessagingController {
     }
   }
 
-  @EventPattern(GoogleEventMessage.Pattern.SendEachForMulticast)
-  async sendEachForMulticast(@Payload() payload: GoogleEventMessage.IPatternSendEachForMulticastPayload, @Ctx() ctx: KafkaContext) {
+  @EventPattern(Topic.SendEachForMulticast)
+  async sendEachForMulticast(@Payload() payload: IPatternSendEachForMulticastPayload, @Ctx() ctx: KafkaContext) {
     try {
       await this.firebaseCloudMessagingService.sendEachForMulticastNotification(payload.data);
     } catch (error) {

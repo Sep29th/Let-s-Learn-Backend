@@ -1,21 +1,19 @@
 import { Message, MulticastMessage } from 'firebase-admin/messaging';
 
-export declare namespace GoogleEventMessage {
-  enum Pattern {
-    Send = 'google.fcm.send',
-    SendEach = 'google.fcm.send-each',
-    SendEachForMulticast = 'google.fcm.send-each-for-multicast',
-  }
+export enum Topic {
+  Send = 'google_fcm_send',
+  SendEach = 'google_fcm_send_each',
+  SendEachForMulticast = 'google_fcm_send_each_for_multicast',
+}
 
-  interface IPatternSendPayload {
-    data: Message;
-  }
+export interface IPatternSendPayload {
+  data: Message;
+}
 
-  interface IPatternSendEachPayload {
-    data: Message[];
-  }
+export interface IPatternSendEachPayload {
+  data: Message[];
+}
 
-  interface IPatternSendEachForMulticastPayload {
-    data: MulticastMessage;
-  }
+export interface IPatternSendEachForMulticastPayload {
+  data: MulticastMessage;
 }

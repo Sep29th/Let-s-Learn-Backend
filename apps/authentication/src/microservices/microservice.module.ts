@@ -2,6 +2,8 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { GoogleMicroservice } from './services/google.microservice';
 import { ClientsModule } from '@nestjs/microservices';
 import google from 'service-info/service-info/google';
+import notification from 'service-info/service-info/notification';
+import { NotificationMicroservice } from './services/notification.microservice';
 
 @Module({})
 export class MicroserviceModule {
@@ -16,9 +18,15 @@ export class MicroserviceModule {
             ...google.sync,
           },
         ]),
+        ClientsModule.register([
+          {
+            name: 'NOTIFICATION_SERVICE_ASYNC',
+            ...notification.async,
+          },
+        ]),
       ],
-      providers: [GoogleMicroservice],
-      exports: [GoogleMicroservice],
+      providers: [GoogleMicroservice, NotificationMicroservice],
+      exports: [GoogleMicroservice, NotificationMicroservice],
     };
   }
 }

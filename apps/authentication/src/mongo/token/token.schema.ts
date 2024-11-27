@@ -19,7 +19,7 @@ export class Token {
   OS: string;
 
   @Prop({ type: mongoose.Schema.Types.String })
-  software: string;
+  platform: string;
 }
 
 export const TokenSchema = SchemaFactory.createForClass(Token);

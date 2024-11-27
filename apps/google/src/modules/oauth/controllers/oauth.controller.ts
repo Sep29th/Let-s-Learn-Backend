@@ -11,15 +11,6 @@ export class OauthController implements GoogleServiceController {
 
   @GrpcMethod(GOOGLE_SERVICE_NAME)
   loginWithGoogle(data: IGoogleClientRequest): Observable<IGoogleUserResourceInfo> {
-    return this.oauthService.getToken(data).pipe(
-      switchMap((tokenResponse) =>
-        this.oauthService.getUserInfo(tokenResponse.data).pipe(
-          map((userInfoResponse) => {
-            console.log(userInfoResponse.data);
-            return userInfoResponse.data;
-          }),
-        ),
-      ),
-    );
+    return this.oauthService.getToken(data).pipe(switchMap((tokenResponse) => this.oauthService.getUserInfo(tokenResponse.data).pipe(map((userInfoResponse) => userInfoResponse.data))));
   }
 }

@@ -8,13 +8,13 @@ export class FirebaseCloudMessagingService {
   private firebaseApp: app.App;
 
   constructor(private readonly configService: ConfigService) {
-    this.firebaseApp = initializeApp({
-      credential: credential.cert({
-        clientEmail: this.configService.get<string>('FCM_CLIENT_EMAIL'),
-        privateKey: this.configService.get<string>('FCM_PRIVATE_KEY'),
-        projectId: this.configService.get<string>('FCM_PROJECT_ID'),
-      }),
-    });
+    // this.firebaseApp = initializeApp({
+    //   credential: credential.cert({
+    //     clientEmail: this.configService.get<string>('FCM_CLIENT_EMAIL'),
+    //     privateKey: this.configService.get<string>('FCM_PRIVATE_KEY'),
+    //     projectId: this.configService.get<string>('FCM_PROJECT_ID'),
+    //   }),
+    // });
   }
 
   /**

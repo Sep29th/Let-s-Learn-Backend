@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
-import { IToken } from '../interfaces/token.interface';
+import { IToken } from '../types/token.type';
 import { JwtService } from '@nestjs/jwt';
-import { IRefreshTokenPayload } from '../interfaces/refresh-token-payload.interface';
+import { IRefreshTokenPayload } from '../types/refresh-token-payload.type';
 import { ConfigService } from '@nestjs/config';
 import { TokenRepositoryService } from 'apps/authentication/src/mongo/token/token.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
@@ -11,35 +11,60 @@ import { IAccessTokenPayload } from '@app/module/authentication/interfaces/acces
 
 export abstract class Auth {
   constructor(
-    private readonly authenticationRepository: AuthenticationRepositoryService,
-    private readonly tokenRepository: TokenRepositoryService,
-    private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
+    protected readonly authenticationRepository: AuthenticationRepositoryService,
+    protected readonly tokenRepository: TokenRepositoryService,
+    protected readonly configService: ConfigService,
+    protected readonly jwtService: JwtService,
   ) {}
 
-  abstract signIn(...args: any): IToken | Promise<IToken> | Observable<IToken>;
+  abstract signIn(...args: any): IToken | Promise<IToken | Observable<IToken>> | Observable<IToken>;
 
-  async signOut(refreshToken: string) {
+  async signOut(refreshToken: string): Promise<void> {
     await this.tokenRepository.deleteTokenByRefreshToken(refreshToken);
   }
 
-  async signOutOfAllOtherDevices(refreshToken: string, payload: IRefreshTokenPayload) {
+  async signOutOfAllOtherDevices(refreshToken: string, payload: IRefreshTokenPayload): Promise<void> {
     await this.tokenRepository.deleteManyTokenByAuthenticationId(payload.authenticationId, refreshToken);
   }
 
-  async signOutOtherDevice(refreshToken: string) {
+  async signOutOtherDevice(refreshToken: string): Promise<void> {
     await this.tokenRepository.deleteTokenByRefreshToken(refreshToken);
   }
 
   async refreshToken(refreshToken: string, payload: IRefreshTokenPayload): Promise<IToken> {
-    const checkAuthenticationStatus = await this.authenticationRepository.getAuthenticationById(payload.authenticationId);
-    if (checkAuthenticationStatus.status == Status.LOCKED) throw new BadRequestException('AU0006');
-    if (checkAuthenticationStatus.status == Status.DELETED) throw new BadRequestException('AU0007');
     const checkExist = await this.tokenRepository.getTokenByRefreshToken(refreshToken);
     if (!checkExist) throw new UnauthorizedException('AU0003');
-    const newRefreshToken = await this.jwtService.signAsync(payload, { algorithm: 'RS512', expiresIn: '180d', secret: this.configService.get<string>('JWT_REFRESH_PUBLIC_KEY') });
+    const auth = await this.authenticationRepository.getAuthenticationById(payload.authenticationId);
+    this.checkAuthenticationStatus(auth.status, [Status.LOCKED, Status.DELETED]);
+    const [newRefreshToken, newAccessToken] = await Promise.all([
+      this.jwtService.signAsync({ authenticationId: auth._id.toString() } as IRefreshTokenPayload, {
+        algorithm: 'RS512',
+        expiresIn: '180d',
+        secret: this.configService.get<string>('JWT_REFRESH_PRIVATE_KEY'),
+      }),
+      this.jwtService.signAsync({ authenticationId: auth._id.toString(), roles: auth.roles } as IAccessTokenPayload, {
+        algorithm: 'RS256',
+        expiresIn: '4h',
+        secret: this.configService.get<string>('JWT_ACCESS_PRIVATE_KEY'),
+      }),
+    ]);
     await this.tokenRepository.updateTokenByRefreshToken(refreshToken, newRefreshToken);
-    const newAccessToken = await this.jwtService.signAsync({} as IAccessTokenPayload, { algorithm: 'RS256', expiresIn: '4h', secret: this.configService.get<string>('JWT_ACCESS_PUBLIC_KEY') });
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+  }
+
+  async verifyPhonenumber(authenticationId: string) {
+    const auth = await this.authenticationRepository.getAuthenticationById(authenticationId);
+    this.checkAuthenticationStatus(auth.status, [Status.DELETED, Status.LOCKED]);
+  }
+
+  protected checkAuthenticationStatus(status: Status, unaccept: Status[]) {
+    unaccept.forEach((unacceptStatus) => {
+      if (status == unacceptStatus) {
+        if (unacceptStatus == Status.LOCKED) throw new BadRequestException('AU0006');
+        else if (unacceptStatus == Status.DELETED) throw new BadRequestException('AU0007');
+        else if (unacceptStatus == Status.ACTIVE) throw new BadRequestException('AU0008');
+        else if (unacceptStatus == Status.UNACTIVE) throw new BadRequestException('AU0009');
+      }
+    });
   }
 }

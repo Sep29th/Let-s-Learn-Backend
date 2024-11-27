@@ -1,12 +1,13 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { QueueName, MessageData, MessageType } from '../interfaces/mail-queue';
 
 @Injectable()
 export class MailService {
-  constructor(@InjectQueue('MAIL') private readonly mailQueue: Queue) {}
+  constructor(@InjectQueue(QueueName) private readonly mailQueue: Queue<MessageData, any, MessageType>) {}
 
-  async sendEmail(): Promise<void> {
-    await this.mailQueue.add('send-one', { code: '123546', email: 'caulata1234@gmail.com' });
+  async sendVerificationEmail(content: MessageData): Promise<void> {
+    await this.mailQueue.add(MessageType.SEND_VERIFYCATION_EMAIL, content);
   }
 }
